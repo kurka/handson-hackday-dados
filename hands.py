@@ -1,8 +1,9 @@
 import MySQLdb
 import numpy as np
+import pandas as pd
 from unicodedata import normalize 
 
-db = MySQLdb.connect(host="localhost", user="root", passwd="abc123", db="camarafiltrado")
+db = MySQLdb.connect(host="localhost", user="root", passwd="", db="camarafiltrado")
 
 cur = db.cursor()
 
@@ -47,14 +48,19 @@ stopwords += ["2005", "2006", "2007", "2008", "2009", "2010", "2011", "d", "nas"
 stopwords += ["040", "sao", "mas", "deputados", "deputado", "camara", "ha", "todos", "mil", "foi", "sem", "05", "caput", "fins", "tema", "quando", "poder", "2o", "paulo", "68", "r", "seis", "tambem"]
 # Separate into a list of (word, frequency).
 
+
+fonte_arch = "/usr/share/fonts/TTF/arial.ttf"
+fonte_ubuntu = "/usr/share/fonts/truetype/msttcorefonts/arial.ttf"
+fonte = fonte_arch
+
 for estado in uf2tex.keys():
     TEXT = uf2tex[estado]
     words = wordcloud.process_text(TEXT, stopwords=stopwords)
     # Computa a posicao das palavras
-    elements = wordcloud.fit_words(words, font_path="/usr/share/fonts/truetype/msttcorefonts/arial.ttf")
+    elements = wordcloud.fit_words(words, font_path=fonte)
     # Desenha as palavras no arquivo png
-    wordcloud.draw(elements, estado+".png", font_path="/usr/share/fonts/truetype/msttcorefonts/arial.ttf", scale=2)#width=500, height=500,
-        
+    wordcloud.draw(elements, estado+".png", font_path=fonte, scale=2)#width=500, height=500,
+    #ubuntu    
         
         
         
@@ -65,6 +71,11 @@ for estado in uf2tex.keys():
 #######################################################
 
 
+import MySQLdb
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
 #clusterizacoes (ou predicao)
 
 #1- renda X idade
@@ -73,15 +84,69 @@ for estado in uf2tex.keys():
 
 
 
-query = '''select d.id_deputado, sum(valor) as bens, data_nascimento, partido_atual, eleicao_partido
-from deputados as d, deputados_eleicoes_bens as deb
-where d.id_deputado = deb.id_deputado and data_nascimento is not null and partido_atual is not null
-group by deb.id_deputado;'''
+#query ='''select a.id_deputado, a.eleicao_partido, b.bens, c.gastos 
+#from deputados as a
+#inner join (select id_deputado, cast(sum(valor) as signed) as bens from deputados_eleicoes_bens group by id_deputado) as b on a.id_deputado = b.id_deputado
+#inner join (select id_deputado, cast(sum(valor) as signed) as gastos from deputados_eleicoes_despesas group by id_deputado) as c on a.id_deputado = c.id_deputado
+#order by b.bens desc limit 50,10000
+#;'''
 
-cur.execute(query)
+
+#query ='''select a.id_deputado, a.eleicao_partido, b.receitas, c.gastos 
+#from deputados as a
+#inner join (select id_deputado, cast(sum(valor) as signed) as receitas from deputados_eleicoes_receitas group by id_deputado) as b on a.id_deputado = b.id_deputado
+#inner join (select id_deputado, cast(sum(valor) as signed) as gastos from deputados_eleicoes_despesas group by id_deputado) as c on a.id_deputado = c.id_deputado
+#;'''
+
+
+#query='''
+#select a.id_deputado, a.eleicao_partido, b.bens, DATE_FORMAT(FROM_DAYS(DATEDIFF('2014-05-08',a.data_nascimento)), '%Y')+0 as idade
+#from deputados as a
+#inner join (select id_deputado, cast(sum(valor) as signed) as bens from deputados_eleicoes_bens group by id_deputado) as b on a.id_deputado = b.id_deputado
+#order by b.bens desc limit 100,10000
+#;
+#'''
+#
+#query='''
+#select a.id_deputado, a.eleicao_partido, b.gastos, DATE_FORMAT(FROM_DAYS(DATEDIFF('2014-05-08',a.data_nascimento)), '%Y')+0 as idade
+#from deputados as a
+#inner join (select id_deputado, cast(sum(valor) as signed) as gastos from deputados_eleicoes_despesas group by id_deputado) as b on a.id_deputado = b.id_deputado
+#order by b.gastos desc limit 100,10000
+#;
+#'''
+
+
+query='''
+select a.id_deputado, a.eleicao_partido, b.gastos_cota, c.gastos_campanha, DATE_FORMAT(FROM_DAYS(DATEDIFF('2014-05-08',a.data_nascimento)), '%Y')+0 as idade 
+from 
+	deputados as a
+	inner join (
+		select cc.id_deputado as id_deputado,  cast(sum(dc.valor_liquido) as signed) as gastos_cota
+		from 
+			despesas_cota as dc 
+			inner join (select id_centro_custo, id_deputado from centros_custos where tipo='deputado') as cc 
+			on dc.id_centro_custo = cc.id_centro_custo
+		group by cc.id_deputado) as b
+	on a.id_deputado = b.id_deputado
+	inner join (
+		select id_deputado, cast(sum(valor) as signed) as gastos_campanha 
+		from deputados_eleicoes_despesas 
+		group by id_deputado) as c 
+	on a.id_deputado = c.id_deputado
+;
+'''
+
+
+cur.execute(query) 
 rows = cur.fetchall()
 
-rendas = np.array([[tupl[0], int(tupl[1])]  for tupl in rows])
+lrows = [list(tupl) for tupl in rows]
+
+df = pd.DataFrame(lrows, columns=["id", "partido", "gastos_cota", "gastos_campanha", "idade"])
+
+
+df.plot(x='gastos_cota', y='idade', style='o')
+
 
 
 
@@ -107,7 +172,7 @@ partidos = list(set([tupl[1] for tupl in rows]))
 matriz_votos = np.empty((len(votacoes), len(partidos)))
 
 for tupl in rows:
-    matriz_votos[votacoes.index(tupl[0]), partidos.index(tupl[1])] += int(tupl[2])
+    matriz_votos[votacoes.index(tupl[0]), partidos.index(tupl[1])] = int(tupl[2])
     
 
     
