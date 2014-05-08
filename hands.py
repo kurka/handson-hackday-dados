@@ -1,7 +1,8 @@
 import MySQLdb
 import numpy as np
+from unicodedata import normalize 
 
-db = MySQLdb.connect(host="localhost", user="root", db="camarafiltrado")
+db = MySQLdb.connect(host="localhost", user="root", passwd="abc123", db="camarafiltrado")
 
 cur = db.cursor()
 
@@ -22,7 +23,8 @@ uf2tex = {}
 #para cada proposta, pega autor e uf
 for proposicao in proposicoes:
     cur.execute("select inteiro_teor from proposicoes where id_proposicao=(%s)", (proposicao,))
-    texto = cur.fetchone()[0]
+    textocod = str(cur.fetchone()[0])
+    texto = normalize('NFKD', textocod.decode("latin1")).encode('ASCII','ignore').lower()
     #print texto[:20]
     cur.execute("select uf from deputados where id_deputado in (select autor1 from proposicoes where id_proposicao=(%s))", (proposicao,))
     uf = cur.fetchone()[0] #pega o uf do deputado
@@ -39,16 +41,19 @@ for proposicao in proposicoes:
 import wordcloud
 
 stopwords = ["o", "e", "a", "as", "de", "da", "do", "dos", "das", "um", "uma", "umas", "que", "em", "no", "por", "com", "para", "os", "ao", "se", "na", "ou", "como", "pela", "mais", "nos", "ser" ]
-stopwords += ["n", "s", "p", "c", "1", "000", "5", "0", "2", "3", "4", "00", "2013", "m", "es", "lei", "art", "rio", "ncia", "comiss", "projeto", "dio", "ria"] #stopwords especificas desse corpora
+stopwords += ["n", "s", "p", "c", "1", "000", "5", "0", "2", "3", "4", "00", "2013", "m", "es", "lei", "art", "rio", "ncia", "comiss", "projeto", "dio", "ria", "d", "brasil", "comissao", "nao", "sim"]
+stopwords += ["aos", "sua", "anos", "2012", "pelo", "sobre", "seu", "1o", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "b", "i", "ii", "iii", "f", "2000", "2001", "2002", "2003", "2004"]
+stopwords += ["2005", "2006", "2007", "2008", "2009", "2010", "2011", "d", "nas", "250", "dois", "esta", "tem", "sr", "relator", "11", "12", "sobre", "senador", "foi", "senhor", "sem", "trata"]
+stopwords += ["040", "sao", "mas", "deputados", "deputado", "camara", "ha", "todos", "mil", "foi", "sem", "05", "caput", "fins", "tema", "quando", "poder", "2o", "paulo", "68", "r", "seis"]
 # Separate into a list of (word, frequency).
 
 for estado in uf2tex.keys():
     TEXT = uf2tex[estado]
     words = wordcloud.process_text(TEXT, stopwords=stopwords)
     # Computa a posicao das palavras
-    elements = wordcloud.fit_words(words, font_path="/usr/share/fonts/TTF/arial.ttf")
+    elements = wordcloud.fit_words(words, font_path="/usr/share/fonts/truetype/msttcorefonts/arial.ttf")
     # Desenha as palavras no arquivo png
-    wordcloud.draw(elements, estado+".png", font_path="/usr/share/fonts/TTF/arial.ttf", scale=2)#width=500, height=500,
+    wordcloud.draw(elements, estado+".png", font_path="/usr/share/fonts/truetype/msttcorefonts/arial.ttf", scale=2)#width=500, height=500,
         
         
         
