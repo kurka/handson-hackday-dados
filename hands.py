@@ -44,7 +44,7 @@ stopwords = ["o", "e", "a", "as", "de", "da", "do", "dos", "das", "um", "uma", "
 stopwords += ["n", "s", "p", "c", "1", "000", "5", "0", "2", "3", "4", "00", "2013", "m", "es", "lei", "art", "rio", "ncia", "comiss", "projeto", "dio", "ria", "d", "brasil", "comissao", "nao", "sim"]
 stopwords += ["aos", "sua", "anos", "2012", "pelo", "sobre", "seu", "1o", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "b", "i", "ii", "iii", "f", "2000", "2001", "2002", "2003", "2004"]
 stopwords += ["2005", "2006", "2007", "2008", "2009", "2010", "2011", "d", "nas", "250", "dois", "esta", "tem", "sr", "relator", "11", "12", "sobre", "senador", "foi", "senhor", "sem", "trata"]
-stopwords += ["040", "sao", "mas", "deputados", "deputado", "camara", "ha", "todos", "mil", "foi", "sem", "05", "caput", "fins", "tema", "quando", "poder", "2o", "paulo", "68", "r", "seis"]
+stopwords += ["040", "sao", "mas", "deputados", "deputado", "camara", "ha", "todos", "mil", "foi", "sem", "05", "caput", "fins", "tema", "quando", "poder", "2o", "paulo", "68", "r", "seis", "tambem"]
 # Separate into a list of (word, frequency).
 
 for estado in uf2tex.keys():
