@@ -35,6 +35,6 @@ Essa atividade foi idealizada e planejada conjuntamente por:
 
 O material foi desenvolvido por: David Kurka e Micael Carvalho.
 
-## Licença
+## Usos derivados
 
-Caso queira reproduzir ou fazer trabalhos derivados desse conteúdo, entrar em contato com: david.kurka (em) gmail.com
+Este código está sob a licença GPL-3 e pode ser utilizada em outros projetos. Entretanto, se possível, mande email para: david.kurka (em) gmail.com, compartilhando o uso e a aplicação desse material.
